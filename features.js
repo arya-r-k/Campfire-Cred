@@ -80,12 +80,22 @@ function QAFeed({ questions, setQuestions, user, setUser, onCredAwarded, upvoted
     const q = questions.find((item) => item.id === activeQuestion.id) || activeQuestion;
     return (
       <div className="space-y-6 max-w-3xl mx-auto">
-        <button
-          onClick={() => setActiveQuestion(null)}
-          className={`flex items-center gap-2 text-xs font-bold px-3 py-1.5 rounded-xl border ${theme.cardBg} ${theme.cardBorder} ${theme.textSecondary} hover:border-amber-500`}
-        >
-          <Icon name="arrow-left" className="h-4 w-4" /> Back to Feed
-        </button>
+        <div className="flex items-center justify-between">
+          <button
+            onClick={() => setActiveQuestion(null)}
+            className={`flex items-center gap-2 text-xs font-bold px-3 py-1.5 rounded-xl border ${theme.cardBg} ${theme.cardBorder} ${theme.textSecondary} hover:border-amber-500`}
+          >
+            <Icon name="arrow-left" className="h-4 w-4" /> Back to Feed
+          </button>
+          {onLogout && (
+            <button
+              onClick={onLogout}
+              className="flex items-center gap-1.5 text-xs font-bold px-3.5 py-2 rounded-xl border border-red-500/30 bg-red-500/10 text-red-400 hover:bg-red-500/20 transition-all duration-200"
+            >
+              <Icon name="log-out" className="h-4 w-4" /> Logout
+            </button>
+          )}
+        </div>
 
         <div className={`rounded-2xl border p-6 ${theme.cardBg} ${theme.cardBorder} space-y-4 shadow-lg`}>
           <div className="flex items-center justify-between">
@@ -198,8 +208,7 @@ function QAFeed({ questions, setQuestions, user, setUser, onCredAwarded, upvoted
         {onLogout && (
           <button
             onClick={onLogout}
-            title="Logout Student Session"
-            className={`flex items-center gap-1.5 text-xs font-bold px-3.5 py-2.5 rounded-xl border transition-all duration-200 ${theme.cardBg} ${theme.inputBorder} text-red-400 hover:bg-red-500/10 hover:border-red-500/40 shrink-0`}
+            className="flex items-center gap-1.5 text-xs font-bold px-3.5 py-2.5 rounded-xl border border-red-500/30 bg-red-500/10 text-red-400 hover:bg-red-500/20 transition-all duration-200 shrink-0"
           >
             <Icon name="log-out" className="h-4 w-4" /> Logout
           </button>
@@ -379,8 +388,7 @@ function SchedulePage({ type, user, theme, onLogout }) {
         {onLogout && (
           <button
             onClick={onLogout}
-            title="Logout Student Session"
-            className={`flex items-center gap-1.5 text-xs font-bold px-3.5 py-2.5 rounded-xl border transition-all duration-200 ${theme.cardBg} ${theme.inputBorder} text-red-400 hover:bg-red-500/10 hover:border-red-500/40 shrink-0`}
+            className="flex items-center gap-1.5 text-xs font-bold px-3.5 py-2 rounded-xl border border-red-500/30 bg-red-500/10 text-red-400 hover:bg-red-500/20 transition-all duration-200 shrink-0"
           >
             <Icon name="log-out" className="h-4 w-4" /> Logout
           </button>
@@ -498,8 +506,7 @@ function LeaderboardPage({ user, theme, onLogout }) {
         {onLogout && (
           <button
             onClick={onLogout}
-            title="Logout Student Session"
-            className={`flex items-center gap-1.5 text-xs font-bold px-3.5 py-2.5 rounded-xl border transition-all duration-200 ${theme.cardBg} ${theme.inputBorder} text-red-400 hover:bg-red-500/10 hover:border-red-500/40 shrink-0`}
+            className="flex items-center gap-1.5 text-xs font-bold px-3.5 py-2.5 rounded-xl border border-red-500/30 bg-red-500/10 text-red-400 hover:bg-red-500/20 transition-all duration-200 shrink-0"
           >
             <Icon name="log-out" className="h-4 w-4" /> Logout
           </button>
