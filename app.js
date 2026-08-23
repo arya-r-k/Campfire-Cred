@@ -70,51 +70,53 @@ function Icon({ name, className = "h-4 w-4", strokeWidth = 2 }) {
 }
 
 function CampfireSparks() {
-  const sparks = Array.from({ length: 28 });
+  const sparks = Array.from({ length: 65 });
   return (
     <div className="fixed inset-0 pointer-events-none overflow-hidden z-0">
       <style>{`
         @keyframes floatUp {
-          0% { transform: translateY(105vh) translateX(0px) scale(0.4); opacity: 0; }
+          0% { transform: translateY(110vh) translateX(0px) scale(0.4); opacity: 0; }
           15% { opacity: 0.9; }
-          50% { transform: translateY(50vh) translateX(25px) scale(1.1); opacity: 0.7; }
+          50% { transform: translateY(30vh) translateX(35px) scale(1.3); opacity: 0.8; }
           85% { opacity: 0.9; }
-          100% { transform: translateY(-10vh) translateX(-20px) scale(0.8); opacity: 0; }
+          100% { transform: translateY(-20vh) translateX(-30px) scale(0.6); opacity: 0; }
         }
         @keyframes emberPulse {
-          0%, 100% { opacity: 0.2; transform: scale(1); }
-          50% { opacity: 0.5; transform: scale(1.3); }
+          0%, 100% { opacity: 0.3; transform: scale(1); }
+          50% { opacity: 0.6; transform: scale(1.4); }
         }
         .spark {
           position: absolute;
           bottom: -20px;
-          background: radial-gradient(circle, rgba(255,215,0,1) 0%, rgba(249,115,22,0.9) 60%, rgba(239,68,68,0) 100%);
-          border-radius: 50%;
-          box-shadow: 0 0 8px rgba(251,191,36,0.8);
+          /* Increased height to make the sparks longer/streak-like */
+          background: linear-gradient(to top, rgba(255,215,0,1) 0%, rgba(249,115,22,0.8) 50%, rgba(239,68,68,0) 100%);
+          border-radius: 50% / 20%;
+          box-shadow: 0 0 12px rgba(251,191,36,0.9);
           animation: floatUp linear infinite;
         }
         .ember-glow {
           position: absolute;
           border-radius: 50%;
-          filter: blur(80px);
-          animation: emberPulse 6s ease-in-out infinite;
+          filter: blur(90px);
+          animation: emberPulse 5s ease-in-out infinite;
         }
       `}</style>
-      <div className="ember-glow bg-amber-600/10 w-96 h-96 -bottom-20 -left-20"></div>
-      <div className="ember-glow bg-orange-600/10 w-96 h-96 top-1/3 -right-20" style={{ animationDelay: '3s' }}></div>
+      <div className="ember-glow bg-amber-600/15 w-[30rem] h-[30rem] -bottom-20 -left-20"></div>
+      <div className="ember-glow bg-orange-600/15 w-[30rem] h-[30rem] top-1/3 -right-20" style={{ animationDelay: '2.5s' }}></div>
       {sparks.map((_, i) => {
-        const size = Math.random() * 7 + 3;
+        // Made width smaller and height larger to create elongated spark streaks
+        const width = Math.random() * 3 + 2;
+        const height = Math.random() * 16 + 10;
         const left = Math.random() * 100;
-        const duration = Math.random() * 6 + 4;
+        const duration = Math.random() * 4 + 3; 
         const delay = Math.random() * 6;
         return (
-          <div key={i} className="spark" style={{ width: `${size}px`, height: `${size}px`, left: `${left}%`, animationDuration: `${duration}s`, animationDelay: `${delay}s` }} />
+          <div key={i} className="spark" style={{ width: `${width}px`, height: `${height}px`, left: `${left}%`, animationDuration: `${duration}s`, animationDelay: `${delay}s` }} />
         );
       })}
     </div>
   );
 }
-
 function Navbar({ user, onLogout, onOpenProfile, activeTab, setActiveTab, theme, dark, setDark, goHome, onTriggerAuth }) {
   const navTabs = [
     { id: "feed", label: "Q&A Feed", icon: "message-square" },
