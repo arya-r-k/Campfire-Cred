@@ -3,7 +3,7 @@ import { Icon, Modal } from './components.js';
 
 const { useState } = React;
 
-function QAFeed({ questions, setQuestions, user, setUser, onCredAwarded, upvoted, setUpvoted, theme }) {
+function QAFeed({ questions, setQuestions, user, setUser, onCredAwarded, upvoted, setUpvoted, theme, onLogout }) {
   const [search, setSearch] = useState("");
   const [activeTags, setActiveTags] = useState([]);
   const [showAsk, setShowAsk] = useState(false);
@@ -177,22 +177,33 @@ function QAFeed({ questions, setQuestions, user, setUser, onCredAwarded, upvoted
 
   return (
     <div className="space-y-4">
-      <div className="flex flex-col sm:flex-row gap-3">
-        <div className="relative flex-1">
-          <Icon name="search" className={`h-4 w-4 absolute left-3 top-1/2 -translate-y-1/2 ${theme.textFaint}`} />
-          <input
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            placeholder="Search technical discussions..."
-            className={`w-full pl-9 pr-3 py-2.5 rounded-xl border text-sm focus:outline-none focus:ring-2 focus:ring-amber-500 transition-all duration-200 ${theme.inputBg} ${theme.inputBorder} ${theme.textPrimary}`}
-          />
+      <div className="flex flex-col sm:flex-row gap-3 items-center justify-between">
+        <div className="flex flex-col sm:flex-row gap-3 flex-1 w-full">
+          <div className="relative flex-1">
+            <Icon name="search" className={`h-4 w-4 absolute left-3 top-1/2 -translate-y-1/2 ${theme.textFaint}`} />
+            <input
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Search technical discussions..."
+              className={`w-full pl-9 pr-3 py-2.5 rounded-xl border text-sm focus:outline-none focus:ring-2 focus:ring-amber-500 transition-all duration-200 ${theme.inputBg} ${theme.inputBorder} ${theme.textPrimary}`}
+            />
+          </div>
+          <button
+            onClick={() => setShowAsk(true)}
+            className="flex items-center justify-center gap-2 bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 text-slate-950 font-bold text-sm px-5 py-2.5 rounded-xl transition-all duration-200 hover:scale-105 active:scale-95 shrink-0 shadow-md shadow-amber-500/20"
+          >
+            <Icon name="plus" className="h-4 w-4" strokeWidth={2.5} /> Ask Question
+          </button>
         </div>
-        <button
-          onClick={() => setShowAsk(true)}
-          className="flex items-center justify-center gap-2 bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 text-slate-950 font-bold text-sm px-5 py-2.5 rounded-xl transition-all duration-200 hover:scale-105 active:scale-95 shrink-0 shadow-md shadow-amber-500/20"
-        >
-          <Icon name="plus" className="h-4 w-4" strokeWidth={2.5} /> Ask Question
-        </button>
+        {onLogout && (
+          <button
+            onClick={onLogout}
+            title="Logout Student Session"
+            className={`flex items-center gap-1.5 text-xs font-bold px-3.5 py-2.5 rounded-xl border transition-all duration-200 ${theme.cardBg} ${theme.inputBorder} text-red-400 hover:bg-red-500/10 hover:border-red-500/40 shrink-0`}
+          >
+            <Icon name="log-out" className="h-4 w-4" /> Logout
+          </button>
+        )}
       </div>
 
       <div className="flex flex-wrap gap-2">
@@ -316,7 +327,7 @@ function QAFeed({ questions, setQuestions, user, setUser, onCredAwarded, upvoted
   );
 }
 
-function SchedulePage({ type, user, theme }) {
+function SchedulePage({ type, user, theme, onLogout }) {
   const [selected, setSelected] = useState({});
   const [modalInfo, setModalInfo] = useState(null);
   const [confirmed, setConfirmed] = useState(null);
@@ -343,16 +354,14 @@ function SchedulePage({ type, user, theme }) {
     setTimeout(() => setCopied(false), 1500);
   };
 
-  // Helper generator for Google Calendar Web URL link
   const getGoogleCalendarUrl = (item) => {
     const eventTitle = encodeURIComponent(`Campfire Session: ${item.person.name}`);
     const details = encodeURIComponent(`1-on-1 mentorship session booked via Campfire Platform.\nParticipant: ${user.name} (${user.studentId})\nVideo Room Link: ${item.link}`);
     
-    // Default to tomorrow 3 PM for demo convenience if slot text is custom string format
     const now = new Date();
     now.setDate(now.getDate() + 1);
     now.setHours(15, 0, 0, 0);
-    const endTime = new Date(now.getTime() + 45 * 60000); // 45 mins session
+    const endTime = new Date(now.getTime() + 45 * 60000);
 
     const formatGCalTime = (date) => date.toISOString().replace(/-|:|\.\d\d\d/g, "");
     const dates = `${formatGCalTime(now)}/${formatGCalTime(endTime)}`;
@@ -362,9 +371,20 @@ function SchedulePage({ type, user, theme }) {
 
   return (
     <div className="space-y-6 max-w-4xl mx-auto">
-      <div>
-        <h2 className={`font-display text-xl font-bold ${theme.textPrimary}`}>{title}</h2>
-        <p className={`text-sm mt-1 ${theme.textMuted}`}>{subtitle}</p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className={`font-display text-xl font-bold ${theme.textPrimary}`}>{title}</h2>
+          <p className={`text-sm mt-1 ${theme.textMuted}`}>{subtitle}</p>
+        </div>
+        {onLogout && (
+          <button
+            onClick={onLogout}
+            title="Logout Student Session"
+            className={`flex items-center gap-1.5 text-xs font-bold px-3.5 py-2.5 rounded-xl border transition-all duration-200 ${theme.cardBg} ${theme.inputBorder} text-red-400 hover:bg-red-500/10 hover:border-red-500/40 shrink-0`}
+          >
+            <Icon name="log-out" className="h-4 w-4" /> Logout
+          </button>
+        )}
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2">
@@ -451,7 +471,6 @@ function SchedulePage({ type, user, theme }) {
               </div>
             </div>
 
-            {/* Google Calendar Integration Button */}
             <div className="pt-2">
               <a
                 href={getGoogleCalendarUrl(confirmed)}
@@ -469,14 +488,25 @@ function SchedulePage({ type, user, theme }) {
   );
 }
 
-function LeaderboardPage({ user, theme }) {
-  // Automatically merges current user state and resorts items in real-time
+function LeaderboardPage({ user, theme, onLogout }) {
   const merged = [...leaderboardBase, { id: "me", name: user.name, initials: user.initials, cred: user.cred, badges: user.badges }]
     .sort((a, b) => b.cred - a.cred);
 
   return (
     <div className="space-y-6 max-w-4xl mx-auto">
-      <div className="rounded-2xl border border-amber-500/35 bg-gradient-to-r from-amber-950/40 via-slate-900 to-slate-900 p-6 flex flex-col sm:flex-row items-center justify-between gap-4 shadow-xl">
+      <div className="flex justify-end">
+        {onLogout && (
+          <button
+            onClick={onLogout}
+            title="Logout Student Session"
+            className={`flex items-center gap-1.5 text-xs font-bold px-3.5 py-2.5 rounded-xl border transition-all duration-200 ${theme.cardBg} ${theme.inputBorder} text-red-400 hover:bg-red-500/10 hover:border-red-500/40 shrink-0`}
+          >
+            <Icon name="log-out" className="h-4 w-4" /> Logout
+          </button>
+        )}
+      </div>
+
+      <div className="rounded-2xl border border-amber-500/30 bg-gradient-to-r from-amber-950/40 via-slate-900 to-slate-900 p-6 flex flex-col sm:flex-row items-center justify-between gap-4 shadow-xl">
         <div className="flex items-center gap-4">
           <div className="h-14 w-14 rounded-2xl bg-amber-500/20 border border-amber-500/40 flex items-center justify-center shrink-0">
             <Icon name="flame" className="h-8 w-8 text-amber-500 animate-pulse" />
@@ -550,4 +580,4 @@ function LeaderboardPage({ user, theme }) {
   );
 }
 
-export { QAFeed, LeaderboardPage };
+export { QAFeed, SchedulePage, LeaderboardPage };
