@@ -4,6 +4,8 @@
 
 Campfire is a modern peer-to-peer technical learning, Q&A, and mentorship platform designed for tech schools and coding communities. It bridges the gap between students, peers, and Teaching Assistants (TAs) through gamified discussions, instant scheduling, and real-time credential tracking.
 
+https://campfire-cred-ruby.vercel.app/
+
 ---
 
 ## ✨ Key Features
@@ -32,10 +34,3 @@ Campfire is a modern peer-to-peer technical learning, Q&A, and mentorship platfo
 * **Integrations:** Google Calendar Web URL Scheme API for direct event scheduling.
 
 ---
-
-## 🚀 Quick Start / Installation
-
-1. **Clone the repository:**
-   ```bash
-   git clone [https://github.com/your-username/campfire-platform.git](https://github.com/your-username/campfire-platform.git)
-   cd campfire-platform
