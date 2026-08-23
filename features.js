@@ -7,6 +7,8 @@ function QAFeed({ questions, setQuestions, user, setUser, onCredAwarded, upvoted
   const [search, setSearch] = useState("");
   const [activeTags, setActiveTags] = useState([]);
   const [showAsk, setShowAsk] = useState(false);
+  const [activeQuestion, setActiveQuestion] = useState(null);
+  const [replyText, setReplyText] = useState("");
   const [form, setForm] = useState({ title: "", tag: "React", desc: "" });
 
   const toggleTag = (tag) =>
@@ -18,7 +20,8 @@ function QAFeed({ questions, setQuestions, user, setUser, onCredAwarded, upvoted
     return matchesSearch && matchesTag;
   });
 
-  const toggleUpvote = (id) => {
+  const toggleUpvote = (id, e) => {
+    if (e) e.stopPropagation();
     setUpvoted((prev) => {
       const next = new Set(prev);
       next.has(id) ? next.delete(id) : next.add(id);
@@ -29,10 +32,29 @@ function QAFeed({ questions, setQuestions, user, setUser, onCredAwarded, upvoted
     );
   };
 
-  const solveQuestion = (id) => {
+  const solveQuestion = (id, e) => {
+    if (e) e.stopPropagation();
     setQuestions((prev) => prev.map((q) => (q.id === id ? { ...q, solved: true } : q)));
     setUser((prev) => ({ ...prev, cred: prev.cred + 50 }));
     onCredAwarded(id);
+  };
+
+  const submitAnswer = (qId) => {
+    if (!replyText.trim()) return;
+    setQuestions((prev) =>
+      prev.map((q) => {
+        if (q.id === qId) {
+          const answers = q.answers || [];
+          return {
+            ...q,
+            answers: [...answers, { id: Date.now(), author: user.name, initials: user.initials, text: replyText, time: "just now" }]
+          };
+        }
+        return q;
+      })
+    );
+    setUser((prev) => ({ ...prev, cred: prev.cred + 15 }));
+    setReplyText("");
   };
 
   const submitQuestion = () => {
@@ -47,11 +69,111 @@ function QAFeed({ questions, setQuestions, user, setUser, onCredAwarded, upvoted
       desc: form.desc || "No additional details provided.",
       upvotes: 0,
       solved: false,
+      answers: []
     };
     setQuestions((prev) => [newQ, ...prev]);
     setForm({ title: "", tag: "React", desc: "" });
     setShowAsk(false);
   };
+
+  if (activeQuestion) {
+    const q = questions.find((item) => item.id === activeQuestion.id) || activeQuestion;
+    return (
+      <div className="space-y-6 max-w-3xl mx-auto">
+        <button
+          onClick={() => setActiveQuestion(null)}
+          className={`flex items-center gap-2 text-xs font-bold px-3 py-1.5 rounded-xl border ${theme.cardBg} ${theme.cardBorder} ${theme.textSecondary} hover:border-amber-500`}
+        >
+          <Icon name="arrow-left" className="h-4 w-4" /> Back to Feed
+        </button>
+
+        <div className={`rounded-2xl border p-6 ${theme.cardBg} ${theme.cardBorder} space-y-4 shadow-lg`}>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="h-10 w-10 rounded-full bg-gradient-to-tr from-amber-500 to-indigo-600 text-white flex items-center justify-center text-xs font-bold">
+                {q.initials}
+              </div>
+              <div>
+                <span className={`text-sm font-semibold ${theme.textPrimary}`}>{q.author}</span>
+                <span className={`text-xs block ${theme.textFaint}`}>{q.time}</span>
+              </div>
+            </div>
+            <span className={`text-xs font-medium px-2.5 py-1 rounded-full ${theme.tagBg}`}>#{q.tag}</span>
+          </div>
+
+          <h2 className={`font-display text-xl font-bold ${theme.textPrimary}`}>{q.title}</h2>
+          <p className={`text-sm leading-relaxed ${theme.textMuted}`}>{q.desc}</p>
+
+          <div className={`flex items-center justify-between pt-4 border-t ${theme.divider}`}>
+            <button
+              onClick={(e) => toggleUpvote(q.id, e)}
+              className={`flex items-center gap-1.5 text-xs font-medium px-3.5 py-2 rounded-xl border ${
+                upvoted.has(q.id) ? "bg-amber-500/10 border-amber-500/50 text-amber-500" : `${theme.inputBorder} ${theme.textMuted}`
+              }`}
+            >
+              <Icon name="thumbs-up" className="h-4 w-4" /> {q.upvotes} Upvotes
+            </button>
+            {!q.solved ? (
+              <button
+                onClick={(e) => solveQuestion(q.id, e)}
+                className="flex items-center gap-1.5 text-xs font-bold bg-gradient-to-r from-amber-400 to-amber-500 text-slate-950 px-4 py-2 rounded-xl shadow-sm"
+              >
+                <Icon name="zap" className="h-4 w-4" /> Mark Solved & Earn +50 Cred
+              </button>
+            ) : (
+              <span className="text-xs font-medium text-emerald-400 flex items-center gap-1">
+                <Icon name="check-circle" className="h-4 w-4" /> Verified Solution
+              </span>
+            )}
+          </div>
+        </div>
+
+        <div className="space-y-4">
+          <h3 className={`font-display text-base font-bold ${theme.textPrimary}`}>
+            Discussion & Answers ({q.answers ? q.answers.length : 0})
+          </h3>
+
+          {(!q.answers || q.answers.length === 0) && (
+            <p className={`text-xs italic ${theme.textFaint}`}>No answers yet. Be the first to help out!</p>
+          )}
+
+          {q.answers?.map((ans) => (
+            <div key={ans.id} className={`rounded-xl border p-4 ${theme.cardBg} ${theme.cardBorder} space-y-2`}>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <div className="h-7 w-7 rounded-full bg-slate-700 text-white flex items-center justify-center text-[10px] font-bold">
+                    {ans.initials}
+                  </div>
+                  <span className={`text-xs font-semibold ${theme.textPrimary}`}>{ans.author}</span>
+                </div>
+                <span className={`text-[10px] ${theme.textFaint}`}>{ans.time}</span>
+              </div>
+              <p className={`text-xs pl-9 ${theme.textSecondary}`}>{ans.text}</p>
+            </div>
+          ))}
+
+          <div className={`rounded-2xl border p-4 ${theme.cardBg} ${theme.cardBorder} space-y-3`}>
+            <label className={`text-xs font-medium ${theme.textMuted}`}>Post an Answer or Explanation</label>
+            <textarea
+              value={replyText}
+              onChange={(e) => setReplyText(e.target.value)}
+              rows={3}
+              placeholder="Write your technical solution or guidance here..."
+              className={`w-full border rounded-xl p-3 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500 ${theme.inputBg} ${theme.inputBorder} ${theme.textPrimary}`}
+            />
+            <div className="flex justify-end">
+              <button
+                onClick={() => submitAnswer(q.id)}
+                className="bg-gradient-to-r from-amber-500 to-orange-600 text-slate-950 font-bold text-xs px-5 py-2.5 rounded-xl transition-all duration-200 hover:scale-105"
+              >
+                Send Answer (+15 Cred)
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-4">
@@ -96,7 +218,11 @@ function QAFeed({ questions, setQuestions, user, setUser, onCredAwarded, upvoted
           </div>
         )}
         {filtered.map((q) => (
-          <div key={q.id} className={`rounded-2xl border p-5 transition-all duration-200 hover:shadow-lg ${theme.cardBg} ${theme.cardBorder} ${theme.cardHover}`}>
+          <div
+            key={q.id}
+            onClick={() => setActiveQuestion(q)}
+            className={`rounded-2xl border p-5 transition-all duration-200 hover:shadow-lg cursor-pointer ${theme.cardBg} ${theme.cardBorder} ${theme.cardHover}`}
+          >
             <div className="flex items-start gap-3.5">
               <div className="h-9 w-9 rounded-full bg-gradient-to-tr from-amber-500 to-indigo-600 text-white flex items-center justify-center text-xs font-bold shrink-0 shadow-sm">
                 {q.initials}
@@ -113,13 +239,13 @@ function QAFeed({ questions, setQuestions, user, setUser, onCredAwarded, upvoted
                   )}
                 </div>
                 <h3 className={`font-display text-base font-bold mt-1.5 ${theme.textPrimary}`}>{q.title}</h3>
-                <p className={`text-sm mt-1 leading-relaxed ${theme.textMuted}`}>{q.desc}</p>
+                <p className={`text-sm mt-1 leading-relaxed line-clamp-2 ${theme.textMuted}`}>{q.desc}</p>
               </div>
             </div>
 
             <div className={`flex items-center justify-between mt-4 pt-3.5 border-t ${theme.divider}`}>
               <button
-                onClick={() => toggleUpvote(q.id)}
+                onClick={(e) => toggleUpvote(q.id, e)}
                 className={`flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-lg border transition-all duration-200 ${
                   upvoted.has(q.id) ? "bg-amber-500/10 border-amber-500/50 text-amber-500" : `${theme.inputBorder} ${theme.textMuted} hover:border-slate-400`
                 }`}
@@ -127,16 +253,19 @@ function QAFeed({ questions, setQuestions, user, setUser, onCredAwarded, upvoted
                 <Icon name="thumbs-up" className="h-3.5 w-3.5" /> {q.upvotes} Upvotes
               </button>
 
-              {!q.solved ? (
-                <button
-                  onClick={() => solveQuestion(q.id)}
-                  className="flex items-center gap-1.5 text-xs font-bold bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-500 hover:to-amber-600 text-slate-950 px-3.5 py-1.5 rounded-lg transition-all duration-200 shadow-sm"
-                >
-                  <Icon name="zap" className="h-3.5 w-3.5" strokeWidth={2.5} /> Answer & Earn +50 Cred
-                </button>
-              ) : (
-                <span className={`text-xs italic ${theme.textFaint}`}>Verified Solution</span>
-              )}
+              <div className="flex items-center gap-3">
+                <span className={`text-xs ${theme.textFaint}`}>{q.answers ? q.answers.length : 0} answers</span>
+                {!q.solved ? (
+                  <button
+                    onClick={(e) => solveQuestion(q.id, e)}
+                    className="flex items-center gap-1.5 text-xs font-bold bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-500 hover:to-amber-600 text-slate-950 px-3.5 py-1.5 rounded-lg transition-all duration-200 shadow-sm"
+                  >
+                    <Icon name="zap" className="h-3.5 w-3.5" strokeWidth={2.5} /> Solve (+50)
+                  </button>
+                ) : (
+                  <span className={`text-xs italic ${theme.textFaint}`}>Verified Solution</span>
+                )}
+              </div>
             </div>
           </div>
         ))}
@@ -212,6 +341,23 @@ function SchedulePage({ type, user, theme }) {
   const copyLink = () => {
     setCopied(true);
     setTimeout(() => setCopied(false), 1500);
+  };
+
+  // Helper generator for Google Calendar Web URL link
+  const getGoogleCalendarUrl = (item) => {
+    const eventTitle = encodeURIComponent(`Campfire Session: ${item.person.name}`);
+    const details = encodeURIComponent(`1-on-1 mentorship session booked via Campfire Platform.\nParticipant: ${user.name} (${user.studentId})\nVideo Room Link: ${item.link}`);
+    
+    // Default to tomorrow 3 PM for demo convenience if slot text is custom string format
+    const now = new Date();
+    now.setDate(now.getDate() + 1);
+    now.setHours(15, 0, 0, 0);
+    const endTime = new Date(now.getTime() + 45 * 60000); // 45 mins session
+
+    const formatGCalTime = (date) => date.toISOString().replace(/-|:|\.\d\d\d/g, "");
+    const dates = `${formatGCalTime(now)}/${formatGCalTime(endTime)}`;
+
+    return `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${eventTitle}&details=${details}&dates=${dates}`;
   };
 
   return (
@@ -304,6 +450,18 @@ function SchedulePage({ type, user, theme }) {
                 </button>
               </div>
             </div>
+
+            {/* Google Calendar Integration Button */}
+            <div className="pt-2">
+              <a
+                href={getGoogleCalendarUrl(confirmed)}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="w-full flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-bold py-2.5 rounded-xl transition-all duration-200 shadow-md text-xs"
+              >
+                <Icon name="calendar" className="h-4 w-4" /> Add to Google Calendar
+              </a>
+            </div>
           </div>
         </Modal>
       )}
@@ -312,19 +470,20 @@ function SchedulePage({ type, user, theme }) {
 }
 
 function LeaderboardPage({ user, theme }) {
+  // Automatically merges current user state and resorts items in real-time
   const merged = [...leaderboardBase, { id: "me", name: user.name, initials: user.initials, cred: user.cred, badges: user.badges }]
     .sort((a, b) => b.cred - a.cred);
 
   return (
     <div className="space-y-6 max-w-4xl mx-auto">
-      <div className="rounded-2xl border border-amber-500/30 bg-gradient-to-r from-amber-950/40 via-slate-900 to-slate-900 p-6 flex flex-col sm:flex-row items-center justify-between gap-4 shadow-xl">
+      <div className="rounded-2xl border border-amber-500/35 bg-gradient-to-r from-amber-950/40 via-slate-900 to-slate-900 p-6 flex flex-col sm:flex-row items-center justify-between gap-4 shadow-xl">
         <div className="flex items-center gap-4">
           <div className="h-14 w-14 rounded-2xl bg-amber-500/20 border border-amber-500/40 flex items-center justify-center shrink-0">
             <Icon name="flame" className="h-8 w-8 text-amber-500 animate-pulse" />
           </div>
           <div>
             <h2 className={`font-display text-xl font-bold ${theme.textPrimary}`}>Your Creds Balance</h2>
-            <p className={`text-xs ${theme.textMuted}`}>Earn creds by answering student questions and hosting peer sessions.</p>
+            <p className={`text-xs ${theme.textMuted}`}>Earn creds instantly by answering student questions and solving technical threads.</p>
           </div>
         </div>
         <div className="text-right bg-slate-950/60 border border-slate-800 px-6 py-3 rounded-xl w-full sm:w-auto text-center sm:text-right">
@@ -339,7 +498,7 @@ function LeaderboardPage({ user, theme }) {
             <Icon name="trophy" className="h-5 w-5 text-amber-500" />
             <h3 className={`font-display text-lg font-bold ${theme.textPrimary}`}>Campfire Leaderboard</h3>
           </div>
-          <span className={`text-xs font-mono ${theme.textFaint}`}>Updated in real-time</span>
+          <span className={`text-xs font-mono ${theme.textFaint}`}>Automatic & Real-time</span>
         </div>
 
         <div className="space-y-2">
@@ -367,7 +526,7 @@ function LeaderboardPage({ user, theme }) {
                     {entry.name}
                     {isMe && <span className="text-[10px] bg-amber-500/20 text-amber-400 border border-amber-500/30 px-2 py-0.5 rounded-full font-sans">YOU</span>}
                   </div>
-                  {entry.badges.length > 0 && (
+                  {entry.badges?.length > 0 && (
                     <div className="flex gap-1.5 mt-1 flex-wrap">
                       {entry.badges.map((b) => (
                         <span key={b} className={`text-[10px] px-2 py-0.5 rounded-full flex items-center gap-1 ${theme.chipBg}`}>
@@ -391,4 +550,4 @@ function LeaderboardPage({ user, theme }) {
   );
 }
 
-export { QAFeed, SchedulePage, LeaderboardPage };
+export { QAFeed, LeaderboardPage };
